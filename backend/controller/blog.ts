@@ -1,0 +1,170 @@
+import { Post } from "../model/post";
+import { comment } from "../model/comment";
+import { func } from "prop-types";
+
+    function init(){
+        buildArticels();
+        checkIfLoggedInAndBuildPostForm();
+        }
+/*
+    function buildComments(postId:number):void{
+        const commentArray: comment[] = getCommentsFromStorage();
+        const section = document.getElementById("`comments-list-${postId}`") as HTMLElement
+        const filterdComments = commentArray.filter(c => c.getPostId() === postId)
+        filterdComments.forEach(element => {
+            let commentElement = document.createElement("article")
+            commentElement.id = `comment-${element.getId()}`;
+            //Ändra sen så det inte är inneHTML
+            commentElement.innerHTML = `
+            <h2>${element.getCommentWriter()}</h2>
+            <p>${element.getContent()}</p>
+        `;
+        section.appendChild(commentElement);
+        });
+    }
+*/
+    function buildArticels(): void{
+        const articlesArray: Post[] = getPostsFromStorage();
+        const section = document.getElementById("blog") as HTMLElement
+        articlesArray.forEach(element => {
+            let postElement = document.createElement("article")
+            postElement.id = `post-${element.getId()}`;           
+            postElement.innerHTML = `
+            <h2>${element.getTitle()}</h2>
+            <p>${element.getContent()}</p>
+        `;
+        section.appendChild(postElement);
+        buildCommentsAndCommentForm(element.getId());
+        });
+    }
+    function buildCommentsAndCommentForm(postId:number):void{
+    const form = document.createElement("form");
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.placeholder = "anonymous";
+
+    const textInput = document.createElement("textarea");
+    textInput.placeholder = "Skriv in kommentar";
+    textInput.required = true;
+
+    const sendButton = document.createElement("button");
+    sendButton.type = "submit";
+    sendButton.textContent = "Skicka";
+
+    const output = document.createElement("div");
+
+    form.append(titleInput, textInput, sendButton);
+    
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const newComment = new comment(getMaxIdComment(),textInput.value,postId,titleInput.value)
+        const commentArray = JSON.parse(localStorage.getItem("comments") || "[]");
+        commentArray.push(newComment)
+        localStorage.setItem("comments",JSON.stringify(commentArray))
+
+        const article = document.createElement("article");
+
+        const commentWriter = document.createElement("h2");
+        commentWriter.textContent = newComment.getCommentWriter();
+
+        const text = document.createElement("p");
+        text.textContent = newComment.getContent();
+
+        article.append(commentWriter, text);
+        output.append(article);
+
+        form.reset();
+    });
+
+    form.append(output);
+    }
+
+    function getPostsFromStorage(): Post[] {
+    const rawData = JSON.parse(localStorage.getItem("posts") || "[]");
+    return rawData.map((data: any) => {
+        const post = new Post(data.id , data.title, data.content, data.userId);
+        if (data.createdAt) {
+            (post as any).createdAt = new Date(data.createdAt);
+        }
+        return post;
+    });
+    }
+    function getCommentsFromStorage(): comment[] {
+    const rawData = JSON.parse(localStorage.getItem("comments") || "[]");
+
+    return rawData.map((data: any) => {
+        return new comment(data.id, data.content, data.postId, data.commentWriter);
+    });
+}
+
+    function checkIfLoggedInAndBuildPostForm():void{
+        const loggedInUser = sessionStorage.getItem("user")
+        if(loggedInUser){
+                const form = document.createElement("form");
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.placeholder = "Rubrik";
+    titleInput.required = true
+
+    const textInput = document.createElement("textarea");
+    textInput.placeholder = "Börja ditt inlägg";
+    textInput.required = true;
+
+    const sendButton = document.createElement("button");
+    sendButton.type = "submit";
+    sendButton.textContent = "Skicka";
+
+    const output = document.createElement("div");
+
+    form.append(titleInput, textInput, sendButton);
+    
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const userId = JSON.parse(loggedInUser);
+        const newPost = new Post(getMaxIdPost(),titleInput.value,textInput.value,userId.id)
+        const postArray = JSON.parse(localStorage.getItem("posts") || "[]");
+        postArray.push(newPost)
+        localStorage.setItem("posts",JSON.stringify(postArray))
+
+        const article = document.createElement("article");
+
+        const postTitle = document.createElement("h2");
+        postTitle.textContent = newPost.getTitle();
+
+        const text = document.createElement("p");
+        text.textContent = newPost.getContent();
+
+        article.append(postTitle, text);
+        output.append(article);
+
+        form.reset();
+    });
+
+    form.append(output);
+        }
+            
+    }
+
+    function getMaxIdPost():number{
+        const postData = JSON.parse(localStorage.getItem("posts") || "[]"
+    );
+    if (postData.length === 0) {
+        return 1;
+    }
+    const maxId = Math.max(...postData.map((post: any) => post.id));
+    return maxId + 1;
+}
+
+    function getMaxIdComment():number{
+        const postData = JSON.parse(localStorage.getItem("comments") || "[]");
+    if (postData.length === 0) {
+        return 1;
+    }
+    const maxId = Math.max(...postData.map((comment: any) => comment.id));
+    return maxId + 1;
+}
+
+init();
