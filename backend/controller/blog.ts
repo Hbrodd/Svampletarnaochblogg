@@ -128,26 +128,9 @@ import { func } from "prop-types";
         const postArray = JSON.parse(localStorage.getItem("posts") || "[]");
         postArray.push(newPost)
         localStorage.setItem("posts",JSON.stringify(postArray))
-
-        const article = document.createElement("article");
-
-        const postTitle = document.createElement("h2");
-        postTitle.textContent = newPost.getTitle();
-
-        const text = document.createElement("p");
-        text.textContent = newPost.getContent();
-
-        article.append(postTitle, text);
-        output.append(article);
-
-        form.reset();
     });
-
-    form.append(output);
-        }
-            
+}
     }
-
     function getMaxIdPost():number{
         const postData = JSON.parse(localStorage.getItem("posts") || "[]"
     );
