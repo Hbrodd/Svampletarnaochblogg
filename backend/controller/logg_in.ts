@@ -18,7 +18,7 @@ async function init(){
     })
     createButton.addEventListener("click", () => {
         console.log("Skapa användare");
-        if(createUserAndSave(userName.value.toLocaleLowerCase(), passWord.value.toLocaleLowerCase(), userObjectArray) === true){  
+        if(createUserAndSave(userName.value.toLocaleLowerCase(), passWord.value, userObjectArray) === true){  
         console.log("success")}
         })};
         
