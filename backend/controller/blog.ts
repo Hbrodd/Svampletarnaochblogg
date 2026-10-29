@@ -1,7 +1,5 @@
 import { Post } from "../model/post";
 import { comment } from "../model/comment";
-import { func } from "prop-types";
-import { User } from "../model/user";
 
     function init(){
         createPost();
@@ -59,7 +57,9 @@ import { User } from "../model/user";
         author.textContent = user ? user.username : "Okänd användare";
         const postCreatedAt = document.createElement("p")
         postCreatedAt.textContent = post.getCreatedAt().toDateString();
-        article.append(title,postContent,author,postCreatedAt)
+        const commentSection = document.createElement("section")
+        commentSection.id = `comments-list-${post.getId()}`;
+        article.append(title,postContent,author,postCreatedAt,commentSection)
         section.append(article)
         createComment(post.getId());
         buildCommentFormAndSaveComment(post.getId());
@@ -86,16 +86,33 @@ import { User } from "../model/user";
 
         form.append(titleInput, textInput, sendButton);
     
+        const section = document.getElementById(`comments-list-${postId}`);
+        if(section){
+        section.append(form)
+        }
+
         form.addEventListener("submit", (event) => {
         event.preventDefault();
         const newComment = new comment(getMaxIdComment(),textInput.value,postId,titleInput.value)
         const commentArray = JSON.parse(localStorage.getItem("comments") || "[]");
         commentArray.push(newComment)
         localStorage.setItem("comments",JSON.stringify(commentArray))
+        const section = document.getElementById(`comments-list-${postId}`);
+
+        if (section) {
+        section.replaceChildren();
+        createComment(postId);
+        section.append(form);
+        }
     });
-    }
+}
 
     function createComment(postId: number):void{
+        const section = document.getElementById(`comments-list-${postId}`);
+
+        if (!section) {
+            return;
+        }
         const commentData = getCommentsFromStorage();
         const filterdComments = commentData.filter(newComment => newComment.getPostId() === postId);
         filterdComments.forEach(newComment => {
@@ -107,6 +124,7 @@ import { User } from "../model/user";
         createdAt.textContent = newComment.getCreatedAt().toDateString();
         text.textContent = newComment.getContent();
         article.append(commentWriter, text, createdAt);
+        section.append(article);
 });
     }
 
@@ -157,10 +175,13 @@ import { User } from "../model/user";
         const sendButton = document.createElement("button");
         sendButton.type = "submit";
         sendButton.textContent = "Skicka";
-
-        const output = document.createElement("div");
-
         form.append(titleInput, textInput, sendButton);
+
+        const section = document.getElementById("create-post");
+
+        if (section) {
+        section.append(form);
+        }
     
         form.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -169,6 +190,12 @@ import { User } from "../model/user";
         const postArray = JSON.parse(localStorage.getItem("posts") || "[]");
         postArray.push(newPost)
         localStorage.setItem("posts",JSON.stringify(postArray))
+        const blog = document.getElementById("blog");
+
+            if (blog) {
+            blog.replaceChildren();
+            createPost();
+            }
     });
 }
     }
