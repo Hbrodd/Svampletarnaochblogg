@@ -3,27 +3,19 @@ import { User } from "../model/user"
 import { loginform } from "../model/loginform";
 import { HtmlAttributes } from "csstype";
 
-let nextId = 0;
 
 async function init(){    
     const userName = document.getElementById("username") as HTMLInputElement;
     const passWord = document.getElementById("password") as HTMLInputElement;
-
-    getMaxId();
-
     const userData:[] = JSON.parse(localStorage.getItem("user") || "[]" );
-
     const userObjectArray: User[] = userData.map((data: any) => {
-        return new User(nextId,data.name,data.password);})
-
+        return new User(data.id,data.name,data.password);})
     const createButton = document.getElementById("createButton") as HTMLInputElement || null;
     const loginButton = document.getElementById("logInButton") as HTMLInputElement || null;
-    
         loginButton.addEventListener("click", () => {
             if (logIn(userName.value.toLocaleLowerCase(), passWord.value.toLowerCase(), userObjectArray) === true){
             console.log("Logga in");}
     })
-
     createButton.addEventListener("click", () => {
         console.log("Skapa användare");
         if(createUserAndSave(userName.value.toLocaleLowerCase(), passWord.value.toLocaleLowerCase(), userObjectArray) === true){  
@@ -33,7 +25,7 @@ async function init(){
     
 
 function createUserAndSave(userName:string, passWord:string, userObjectArray: User[]):boolean{ 
-    let newUser: User = new User(nextId, userName, passWord)
+    let newUser: User = new User(getMaxId(), userName, passWord)
     const userExist = userObjectArray.some(element => element.getId() === newUser.getId());
     if(userExist){
         return false}
@@ -60,17 +52,13 @@ return false
 }
 
 
-function getMaxId():void{
-  const userData: [] = JSON.parse(localStorage.getItem("user") || "[]");
-    
-    
-    const userObjectArray: User[] = userData.map((data: any) => {
-        return new User(data.id, data.name, data.password);
-    });
-    if (userObjectArray.length > 0) {
-        const maxId = Math.max(...userObjectArray.map(user => user.getId()));
-        nextId = maxId + 1;
+function getMaxId():number{
+        const postData = JSON.parse(localStorage.getItem("user") || "[]");
+        if (postData.length === 0) {
+        return 1;
     }
+        const maxId = Math.max(...postData.map((user: any) => user.id));
+        return maxId + 1;
 }
 init();
 
