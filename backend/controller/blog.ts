@@ -1,7 +1,7 @@
 import { Post } from "../model/post";
 import { comment } from "../model/comment";
 
-    function init(){
+    async function init(){
         createPost();
         checkIfLoggedInAndBuildPostForm();
         }

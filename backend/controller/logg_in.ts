@@ -1,8 +1,6 @@
 import { element } from "prop-types";
 import { User } from "../model/user"
 import { loginform } from "../model/loginform";
-import { HtmlAttributes } from "csstype";
-
 
 async function init(){    
     const userName = document.getElementById("username") as HTMLInputElement;
