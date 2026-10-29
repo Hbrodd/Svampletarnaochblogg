@@ -1,9 +1,10 @@
 import { Post } from "../model/post";
 import { comment } from "../model/comment";
 import { func } from "prop-types";
+import { User } from "../model/user";
 
     function init(){
-        buildArticels();
+        createPost();
         checkIfLoggedInAndBuildPostForm();
         }
 /*
@@ -23,6 +24,8 @@ import { func } from "prop-types";
         });
     }
 */
+
+/*
     function buildArticels(): void{
         const articlesArray: Post[] = getPostsFromStorage();
         const section = document.getElementById("blog") as HTMLElement
@@ -34,10 +37,37 @@ import { func } from "prop-types";
             <p>${element.getContent()}</p>
         `;
         section.appendChild(postElement);
-        buildCommentsAndCommentForm(element.getId());
+        createComment(element.getId());
+        buildCommentFormAndSaveComment(element.getId());
         });
     }
-    function buildCommentsAndCommentForm(postId:number):void{
+*/
+    
+    function createPost():void{
+        const postArray: Post[] = getPostsFromStorage();
+        const section = document.getElementById("blog") as HTMLElement
+        const userArray = JSON.parse(localStorage.getItem("users") || "[]")
+        postArray.forEach(post => {
+        const user = userArray.find((user: any) => user.id === post.getUserId());
+        const article = document.createElement("article")
+        article.id = `post-${post.getId()}`;
+        const title = document.createElement("h2")
+        title.textContent = post.getTitle();
+        const postContent = document.createElement("p")
+        postContent.textContent = post.getContent();
+        const author = document.createElement("p")
+        author.textContent = user ? user.username : "Okänd användare";
+        const postCreatedAt = document.createElement("p")
+        postCreatedAt.textContent = post.getCreatedAt().toDateString();
+        article.append(title,postContent,author,postCreatedAt)
+        section.append(article)
+        createComment(post.getId());
+        buildCommentFormAndSaveComment(post.getId());
+        });
+    }
+    
+
+    function buildCommentFormAndSaveComment(postId:number):void{
     const form = document.createElement("form");
 
     const titleInput = document.createElement("input");
@@ -58,33 +88,32 @@ import { func } from "prop-types";
     
     form.addEventListener("submit", (event) => {
         event.preventDefault();
-
         const newComment = new comment(getMaxIdComment(),textInput.value,postId,titleInput.value)
         const commentArray = JSON.parse(localStorage.getItem("comments") || "[]");
         commentArray.push(newComment)
         localStorage.setItem("comments",JSON.stringify(commentArray))
+    });
+    }
 
+    function createComment(postId: number):void{
+        const commentData = getCommentsFromStorage();
+        const filterdComments = commentData.filter(newComment => newComment.getPostId() === postId);
+        filterdComments.forEach(newComment => {
         const article = document.createElement("article");
-
         const commentWriter = document.createElement("h2");
         commentWriter.textContent = newComment.getCommentWriter();
-
         const text = document.createElement("p");
+        const createdAt = document.createElement("p")
+        createdAt.textContent = newComment.getCreatedAt().toDateString();
         text.textContent = newComment.getContent();
-
-        article.append(commentWriter, text);
-        output.append(article);
-
-        form.reset();
-    });
-
-    form.append(output);
+        article.append(commentWriter, text, createdAt);
+});
     }
 
     function getPostsFromStorage(): Post[] {
     const rawData = JSON.parse(localStorage.getItem("posts") || "[]");
     return rawData.map((data: any) => {
-        const post = new Post(data.id , data.title, data.content, data.userId);
+    const post = new Post(data.id , data.title, data.content, data.userId);
         if (data.createdAt) {
             (post as any).createdAt = new Date(data.createdAt);
         }
@@ -93,35 +122,46 @@ import { func } from "prop-types";
     }
     function getCommentsFromStorage(): comment[] {
     const rawData = JSON.parse(localStorage.getItem("comments") || "[]");
-
     return rawData.map((data: any) => {
-        return new comment(data.id, data.content, data.postId, data.commentWriter);
+    const newComment = new comment(data.id, data.content, data.postId, data.commentWriter);
+                if (data.createdAt) {
+            (newComment as any).createdAt = new Date(data.createdAt);
+        }
+        return newComment;
     });
 }
-
+/*
+    function getUserFromStorage(): User[] {
+    const rawData = JSON.parse(localStorage.getItem("users") || "[]");
+    return rawData.map((data: any) => {
+    const user = new User(data.id, data.username);
+    return user;
+    });
+}
+*/
     function checkIfLoggedInAndBuildPostForm():void{
         const loggedInUser = sessionStorage.getItem("user")
         if(loggedInUser){
-                const form = document.createElement("form");
+        const form = document.createElement("form");
 
-    const titleInput = document.createElement("input");
-    titleInput.type = "text";
-    titleInput.placeholder = "Rubrik";
-    titleInput.required = true
+        const titleInput = document.createElement("input");
+        titleInput.type = "text";
+        titleInput.placeholder = "Rubrik";
+        titleInput.required = true
 
-    const textInput = document.createElement("textarea");
-    textInput.placeholder = "Börja ditt inlägg";
-    textInput.required = true;
+        const textInput = document.createElement("textarea");
+        textInput.placeholder = "Börja ditt inlägg";
+        textInput.required = true;
 
-    const sendButton = document.createElement("button");
-    sendButton.type = "submit";
-    sendButton.textContent = "Skicka";
+        const sendButton = document.createElement("button");
+        sendButton.type = "submit";
+        sendButton.textContent = "Skicka";
 
-    const output = document.createElement("div");
+        const output = document.createElement("div");
 
-    form.append(titleInput, textInput, sendButton);
+        form.append(titleInput, textInput, sendButton);
     
-    form.addEventListener("submit", (event) => {
+        form.addEventListener("submit", (event) => {
         event.preventDefault();
         const userId = JSON.parse(loggedInUser);
         const newPost = new Post(getMaxIdPost(),titleInput.value,textInput.value,userId.id)
@@ -131,6 +171,7 @@ import { func } from "prop-types";
     });
 }
     }
+
     function getMaxIdPost():number{
         const postData = JSON.parse(localStorage.getItem("posts") || "[]"
     );
@@ -140,7 +181,6 @@ import { func } from "prop-types";
     const maxId = Math.max(...postData.map((post: any) => post.id));
     return maxId + 1;
 }
-
     function getMaxIdComment():number{
         const postData = JSON.parse(localStorage.getItem("comments") || "[]");
     if (postData.length === 0) {
@@ -149,5 +189,4 @@ import { func } from "prop-types";
     const maxId = Math.max(...postData.map((comment: any) => comment.id));
     return maxId + 1;
 }
-
 init();
