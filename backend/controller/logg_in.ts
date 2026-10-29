@@ -13,7 +13,7 @@ async function init(){
     const createButton = document.getElementById("createButton") as HTMLInputElement || null;
     const loginButton = document.getElementById("logInButton") as HTMLInputElement || null;
         loginButton.addEventListener("click", () => {
-            if (logIn(userName.value.toLocaleLowerCase(), passWord.value.toLowerCase(), userObjectArray) === true){
+            if (logIn(userName.value.toLocaleLowerCase(), passWord.value, userObjectArray) === true){
             console.log("Logga in");}
     })
     createButton.addEventListener("click", () => {

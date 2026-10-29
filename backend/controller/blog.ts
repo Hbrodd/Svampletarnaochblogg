@@ -141,7 +141,7 @@ import { User } from "../model/user";
 }
 */
     function checkIfLoggedInAndBuildPostForm():void{
-        const loggedInUser = sessionStorage.getItem("user")
+        const loggedInUser = sessionStorage.getItem("LoggedIn")
         if(loggedInUser){
         const form = document.createElement("form");
 
